@@ -1,9 +1,21 @@
 Introduction to Python Gevent
 =============================
 
+Concurrency and Parallelism
+---------------------------
+To get the terminologies out of the way, first let us understand these two synonymous yet different concepts. 
+
+*Concurrency* happens when tasks are broken down and scheduled in timely manners in such a way that *while A is doing something that is wasting time, let's have B do its thing too*. Think of a person juggling many balls. It may look like magic, but it is pure coordination. The juggler only catch and throw one ball into the air at any given time. However, no ball spends its time hanging in mid air. Each is constantly moving up and down the same time one of them is touching the juggler's hand. 
+
+Imagine another juggler juggling the balls beside the first one. Now we have two jugglers doing roughly (the) same thing. Both of them are working in *parallel*. There are actually two instances separately working at the same time. 
+
+A traditional, procedural process is like a person throwing one ball up and grab it on its way down, then repeat it and maybe throw the ball to a wall and grab it when it bounces back after that. Be creative as you'd like, but the person can't avoid waiting for the ball.
+
+Concurrency can become parallelism. However, it doesn't have to be. Watch this famous talk [Concurrency isn't Parallelism](https://vimeo.com/49718712) by Rob Pike, the creator of the [Go Language](http://golang.org). It is invaluable.
+
 Epitaph to Threads
 ------------------
-Anyone who has been coding long enough to have a taste of **threading** would have learned how tedious it is. Threads are often inevitable in Python (as well as many other languages) when a process requires waiting, for instance interaction with a webserver in tasks like downloading and uploading resources. Python by itself wasn't built to be asynchronous (although newer versions include built-in [async implementations](https://docs.python.org/3.4/library/asyncore.html)), meaning processes are run one after another. For example, consider this snippet:
+Anyone who has been coding long enough to have a taste of **threading** would have learned how tedious it is. Threads are often inevitable in Python (as well as many other languages) when a process requires waiting, for instance interaction with a webserver in tasks like downloading and uploading resources. Python by itself wasn't built to be asynchronous (although newer versions include built-in [async implementations](https://docs.python.org/3.4/library/asyncore.html)), meaning tasks are run one after another. For example, consider this snippet:
 
 ```Python
 
@@ -16,7 +28,7 @@ print("Life goes on")
 ```
 The above code will never print "Life goes on" unless 5 seconds had passed. Can we imagine increasing the wait time to a minute or five minutes? Computer becomes boring in an instant.
 
-In this case, what we would probably do is spawn a new thread to handle the waiting while the program goes on to do some other things behind it. What the computer does in general is swapping the blocking process out of the way and clear the CPU's task force for other tasks. If you have ever used so much RAM on your computer that an alert pops up saying something about swapping memory, that is pretty illustrative to what a thread does (though not exactly the same). Threads make use of computer's multiprocessors by using each one to handle different threads.
+In this case, what we would probably do is spawn a new thread to handle the waiting while the program goes on to do some other things behind it. What the computer does in general is swapping the blocking process out of the way and clear the CPU's task force for other tasks. If you have ever used so much RAM on your computer that an alert pops up saying something about swapping memory, that is pretty illustrative to what a thread does (though not exactly the same). Threading makes use of computer's multiprocessors by using each one to handle different threads.
 
 Consider the same code using a thread to handle the wait:
 
@@ -36,9 +48,9 @@ print("Life goes on")
 ```
 This code print "Life goes on" right away after printing "Start process", then after a few seconds "Done waiting" is printed.
 
-What makes threads so cumbersome are, first, each thread posts considerable amount of overhead, and second, multiple threads sharing a same memory can be very unpredictable. Imagine a situation when a global variable is read and modified by several threads in parallel. How can you be sure each thread ends up with the right value in its hand when there are some others messing around with it? Programmers call this situation a **race**.
+What makes threads so cumbersome are, first, each thread posts considerable amount of overhead, and second, multiple threads sharing a same memory can be very unpredictable. Imagine a situation when a global variable is read and modified by several threads in parallel. How can you be sure each thread ends up with the right value when there are some others messing with it in parallel or concurrence? Programmers call this situation a **race**.
 
-Consider this trivial code that shows three threads randomly access a global variable:
+Consider this trivial code that shows three threads accessing and modifying a global variable at random times. Note that due to the random wait time, it is possible that the variable can be accessed by two threads at exactly the same time:
 
 ```Python
 
@@ -102,7 +114,7 @@ Enter Gevent
 
 When we talk about Concurrency, what we actually means is breaking a chunk of task into multiple smaller subtasks which can be managed and scheduled to run simultaneously. Greenlets are scheduled *cooperatively*, meaning that a greenlet gives up control when it blocks and switch into running another greenlet. We call this action a *context switch*.
 
-A context switch in gevent is done through *yielding* (as in generators). Take a look at the code below in which two greenlets yield control back and forth to one another when `time.sleep()` blocks. You will have to install `gevent` and `greenlet` with `pip install`.
+A context switch in gevent is done through *yielding* (as in generators). Take a look at the code below in which three greenlets yield control back and forth to one another when `time.sleep()` blocks. You will have to install `gevent` and `greenlet` with `pip install`.
 
 ```Python
 
@@ -112,6 +124,7 @@ def foo():
     print('foo is running')
     gevent.sleep(0)
     print('baz is blocking, switch back to foo...DONE!')
+    print('visiting bar...')
 
 def bar():
     gevent.sleep(5)
@@ -121,6 +134,7 @@ def baz():
     print('context switch from foo to bar, still blocking...jump to baz')
     gevent.sleep(1)
     print('visited bar, still blocking, back to baz...DONE!')
+    print('visiting bar again...')
 
 fs = [foo, bar, baz]
 
