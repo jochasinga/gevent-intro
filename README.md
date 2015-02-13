@@ -3,17 +3,17 @@ Introduction to Gevent
 
 Foreword
 --------
-I have been studying for an ideal way of writing asynchronous code in Python. Ideal can have different meanings to different people, but for me it boils down to a balance between straightforwardness, simplicity, elegance and power. I have spent a good time exploring [Twisted](https://twistedmatrix.com/trac/), a very powerful set of networking libraries and was sad to learn how this pioneer is losing its popularity as others (including the core Python development team) create their own modernized solutions instead of building on top of it. It is a shame, but inevitable as the falls of so many great civilizations.
+I have been studying for an ideal way of writing asynchronous code in Python. Ideal can have different meanings to different people, but for me it boils down to a balance between straightforwardness, simplicity, elegance and power. I have spent a good time exploring [Twisted](https://twistedmatrix.com/trac/ "Twisted"), a very powerful set of networking libraries and was sad to learn how this pioneer is losing its popularity as others (including the core Python development team) create their own modernized solutions instead of building on top of it. It is a shame, but inevitable as the falls of so many great civilizations.
 
 There are so many interesting solutions out there that deal with async in Python. As the web applications become more and more mainstream and internet is becoming as a vital part of our life, people become more interested in solving network I/O issues than ever. Concept of threads are beginning to be questioned. There's obviously a need for a better solution to concurrency.
 
-I started this writing solely as my personal note on learning Gevent, a humble coroutine-based solution to Python async. There is of course [Tornado](http://www.tornadoweb.org/en/stable/ "Tornado"), a very powerful, popular and controversial successor of Twisted. However, as [Flask](http://flask.pocoo.org/ "Flask") is a simple alternative to [Django](https://www.djangoproject.com/ "Django"), so is Gevent to Tornado. As I started out with a few Gevent programs, I became impressed with its simplicity and high level of abstraction. I decided to dedicate this repository to document my own journey to it.
+I started this writing solely as my personal note on learning [gevent](http://www.gevent.org/ "gevent"), a humble coroutine-based solution to Python async. There is of course [Tornado](http://www.tornadoweb.org/en/stable/ "Tornado"), a very powerful, popular and controversial successor of Twisted. However, as [Flask](http://flask.pocoo.org/ "Flask") is a simple alternative to [Django](https://www.djangoproject.com/ "Django"), so is gevent to Tornado. As I started out with a few gevent programs, I became impressed with its simplicity and high level of abstraction. I decided to dedicate this repository to document my own journey down the road.
 
 This documentation is perhaps more suitable for intermediate Pythonistas with little or no experience in async. If there's anything I missed, by all means, please contribute. Learning is so much better with people who are better than you.
 
 ###Install###
 Most code is compatible with Python 2.7 and Python 3, though I haven't written any test yet (soon). 
-If you have never used Python's **virtual environment**, you have missed the best part of coding in Python. Now is a good time to start. Read how to install [virtualenv](https://virtualenv.pypa.io/en/latest/ "virtualenv") globally, or use [virtualenvwrapper](https://virtualenvwrapper.readthedocs.org/en/latest/ "virtualenvwrapper") if you prefer. Python 3.4 comes with its own [venv](https://docs.python.org/3/library/venv.html "venv") module which is useful.
+If you have never used Python's **virtual environment**, you have missed the best part of coding in Python. Now is a good time to start. Read how to install [virtualenv](https://virtualenv.pypa.io/en/latest/ "virtualenv") globally, or use [virtualenvwrapper](https://virtualenvwrapper.readthedocs.org/en/latest/ "virtualenvwrapper") if you prefer. Python 3.4 also comes with its own [venv](https://docs.python.org/3/library/venv.html "venv") module which is useful.
 
 After you have installed a virtual environment and activate it within this project directory (you can tell by a `(yourenvname)` before your terminal prompt), install the required dependencies with `pip install`:
 ```Shell
@@ -21,7 +21,7 @@ After you have installed a virtual environment and activate it within this proje
 pip install -r requirements.txt
 
 ```
-Note that without a `virtualenv`, the packages will be installed to your OS's Python main site packages and will also likely work.
+Note that without a `virtualenv`, the packages will be installed to your OS's Python main site packages directory and will also be likely to work.
 
 ###Concurrency and Parallelism###
 To get the terminologies out of the way, first let's understand these two synonymous yet different concepts. 
@@ -32,7 +32,7 @@ Imagine another juggler juggling the balls beside the first one. Now we have two
 
 A traditional, procedural process is like a person throwing one ball up and grab it on its way down, then repeat it or maybe throw the ball to a wall and grab it when it bounces back after that. That person can get as creative as he wants, but he can't avoid waiting for the ball before doing something else next. If the wall is far away, or he throws too high up the air, he will have to wait longer.
 
-Concurrency can become Parallelism, but it doesn't have to. Watch this famous talk [Concurrency isn't Parallelism](https://vimeo.com/49718712 "Go talk") by Rob Pike, the creator of the [Go Language](http://golang.org "Golang"). Trust me, it is invaluable. 
+Concurrency can become Parallelism, but it doesn't have to. Watch this famous talk [Concurrency isn't Parallelism](https://vimeo.com/49718712 "Concurrency vs Parallelism") by Rob Pike, the creator of the [Go Language](http://golang.org "Golang"). Trust me, it is invaluable. 
 
 ###Epitaph to Threads###
 Anyone who has been coding long enough to have a taste of **threading** would have learned how tedious it can be, even for seasoned programmers. Threads are often used when a process requires waiting, for instance an interaction with a webserver (i.e. downloading and uploading files). Python by itself wasn't built to be asynchronous (although newer versions include built-in [async implementations](https://docs.python.org/3.4/library/asyncore.html)), meaning tasks in a Python program are run one after another. For example, consider this snippet:
@@ -50,7 +50,7 @@ The above code will never print "Life goes on" unless 5 seconds had passed. Can 
 
 In this case, what we would probably do is spawn a new thread to handle the waiting while the program goes on to do some other things behind it. What the computer does in general is swapping the blocking process out of the way and clear the CPU's task force for other tasks. If you have ever used so much RAM on your computer that an alert pops up saying something about swapping memory, that is pretty illustrative to what a thread does (though not exactly the same). Threading makes use of computer's multiprocessors by using each one to handle different threads.
 
-Consider the same code using a thread to handle the wait:
+Consider the same code using a thread to handle the wait function:
 
 ```Python
 
@@ -111,7 +111,7 @@ print("Behold...")
 
 ```
 
-"Behold..." is printed right after "Start". This is because threads `t1`, `t2` and `t3` are spawned "out" of the main program. You can simply think of them as another separate programs. Then, each thread prints out its result depending on who finishes first. You will find that some (if not all) threads will be unhappy due to its obtaining an unexpected value. This is the result of each thread messing with the global variable behind each other's back. Imagine the global variable `val` standing for a critical counter variable counting threads' operations, or a case of block of [heap memory](http://gribblelab.org/CBootcamp/7_Memory_Stack_vs_Heap.html "stack vs heap") accessed by those threads. The latter case is probably one of the issues why threading in memory-allocable languages like C/C++, which allow interactions with heap memories, is very complex to maintain and debug. This shared memory problem introduces a concept of [lock or mutex](https://msdn.microsoft.com/en-us/magazine/cc163744.aspx "thread locks"), which is simply a mechanism to prevent another thread from accessing a shared memory when a thread hasn't done its business yet.
+"Behold..." is (likely) printed right after "Start". This is because threads `t1`, `t2` and `t3` are spawned "out" of the main program. You can simply think of them as another separate programs. Then, each thread prints out its result depending on who finishes first. You will find that some (if not all) threads will be unhappy due to its obtaining an unexpected value. This is the result of each thread messing with the global variable behind each other's back. Imagine the global variable `val` standing for a critical counter variable counting threads' operations, or a case of block of [heap memory](http://gribblelab.org/CBootcamp/7_Memory_Stack_vs_Heap.html "stack vs heap") accessed by those threads. The latter case is probably one of the issues why threading in memory-allocable languages like C/C++, which allow interactions with heap memories, is very complex to maintain and debug. This shared memory problem introduces a concept of [lock or mutex](https://msdn.microsoft.com/en-us/magazine/cc163744.aspx "thread locks"), which is simply a mechanism to prevent another thread from accessing a shared memory when a thread hasn't done its business yet.
 
 ###The Curious Case of Node.js###
 You have probably heard of [Node.js](http://nodejs.org/ "Node.js") (If not, that's too bad for you). Node gets rid of the concept of thread entirely by running an event loop on a single thread polling for events thus creating an illusion of parallelism through concurrency (and probably made "async" and "real-time" mainstream). For network I/O applications, which do not require intensive CPU's task force, it's proven highly efficient.
@@ -152,7 +152,14 @@ gevent.joinall([gevent.spawn(f) for f in fs])
 ```
 In the above code, [gevent.joinall()](http://www.gevent.org/gevent.html#gevent.joinall) registers all greenlets and schedule them cooperatively. An optional value can be assigned to a keyword argument *timeout* to signify maximum wait time before timing out. Read each print message to guess the sequence of greenlets run, or run the code yourself. The result should remind you of how the juggler juggles the balls.
 
-Also, note that we just called `gevent.sleep()` instead of `time.sleep()`. Gevent's `sleep()` blocks and switches to a **Hub** instance, which is like a temporary HQ for greenlets and make cooperative scheduling possible. Using the standard `time.sleep()` does not yield a context switch. We will later talk about how to monkey patch the functions and classes in standard modules with cooperative features of gevent.
+Also, note that we just called [gevent.sleep()](http://www.gevent.org/gevent.html#gevent.sleep) instead of [time.sleep()](https://docs.python.org/3.4/library/time.html). Gevent's `sleep()` blocks and switches to a **Hub** instance, which is like a temporary HQ for greenlets and make cooperative scheduling possible. Using the standard `time.sleep()` does not yield a context switch. We will later talk about how to monkey patch the functions and classes in standard modules with cooperative features of gevent.
+
+Take a look at another example which use [gevent.select()](http://www.gevent.org/gevent.html#gevent.select) as a blocking mechanism to trigger a context switch:
+
+```Python
+
+
+```
 
 Before we go on, I'd like to wrap up the concept of coroutines with a quote from *Go Bootcamp*'s author Matt Aimonetti, which holds applicable to Greenlet: 
 
