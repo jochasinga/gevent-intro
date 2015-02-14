@@ -169,12 +169,12 @@ def g2():
     print('enters g2 while waiting for g1 polling')
     select.select([], [], [], 1)
     print('g1 was probably not done, so jump to g2 again')
-    print('g2 is DONE!')
+    print('g2 is DONE! Only g1 left.')
     
 def g3():
     print('hits another polling, switch from g2 to g3')
     gevent.sleep(1)
-    print('g3 is DONE!')
+    print('g3 is DONE! Visiting g1...')
     
 gevent.joinall([
     gevent.spawn(g1),
