@@ -157,11 +157,35 @@ Also, note that we just called [gevent.sleep()](http://www.gevent.org/gevent.htm
 Take a look at another example which use [gevent.select()](http://www.gevent.org/gevent.html#gevent.select) as a blocking mechanism to trigger a context switch:
 
 ```Python
+import gevent
+from gevent import select
 
-
+def g1():
+    print('g1 starts...')
+    select.select([], [], [], 5)
+    print('g1 is DONE!')
+    
+def g2():
+    print('enters g2 while waiting for g1 polling')
+    select.select([], [], [], 1)
+    print('g1 was probably not done, so jump to g2 again')
+    print('g2 is DONE!')
+    
+def g3():
+    print('hits another polling, switch from g2 to g3')
+    gevent.sleep(1)
+    print('g3 is DONE!')
+    
+gevent.joinall([
+    gevent.spawn(g1),
+    gevent.spawn(g2),
+    gevent.spawn(g3),
+])  
+    
 ```
+The example is pretty similar to the last one using [gevent.sleep()](http://www.gevent.org/gevent.html#gevent.sleep) to block. In this case, [gevent.select()](http://www.gevent.org/gevent.html#gevent.select) were used in exactly the same way. Since no file descriptors or socket instances where provided for actual polling, `timeout` was assigned to act like `.sleep()`. At this point, you should be relatively familiar with the juggling. If you have run the above code, you would have noticed that gevent actually kept track of each greenlet's progress and status, which is roughly what the **Hub** mentioned earlier is for. As before, I intentionally print out illustrative messages to help track the cooperation easier.
 
-Before we go on, I'd like to wrap up the concept of coroutines with a quote from *Go Bootcamp*'s author Matt Aimonetti, which holds applicable to Greenlet: 
+Before we go on, I'd like to wrap up the concept of coroutines with a quote from *Go Bootcamp*'s author Matt Aimonetti, which holds applicable to gevent greenlets: 
 
 > ..Do not communicate by sharing memory; instead, share memory by communicating.    
 > Matt Aimonetti, *Go Bootcamp* (https://github.com/gobootcamp/book), 71
