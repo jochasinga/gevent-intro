@@ -187,13 +187,28 @@ The example is pretty similar to the last one using [gevent.sleep()](http://www.
 
 Before we go on, I'd like to wrap up the concept of coroutines with a quote from *Go Bootcamp*'s author Matt Aimonetti, which holds applicable to gevent greenlets: 
 
-> ..Do not communicate by sharing memory; instead, share memory by communicating.    
+> ..Do not communicate by sharing memory; instead, share memory by communicating.  
 > Matt Aimonetti, *Go Bootcamp* (https://github.com/gobootcamp/book), 71
 >
 
 Hope you all find this writing useful. It is a journal of my own findings as well as yours.
 
 Welcome to Gevent Land.
+
+Threads, Subprocesses and Greenlets
+-----------------------------------
+This may seem lengthy, and if you feel so just go ahead and skip this section. However, it is always a good idea to learn from a wooden Katana before choosing the steel one.
+
+###Thread###
+To understand threading in Python and its nuances, it is better to dig down into what lies beneath. We talked about a few of them before, but they were the effects, not the causes.
+
+####GIL####
+No, GIL isn't HAL's girlfriend. It actually stands for [Global Interpreter Lock](https://docs.python.org/3.4/glossary.html#term-global-interpreter-lock "GIL"), a mechanism used in [CPython](https://docs.python.org/3.4/glossary.html#term-cpython "CPython") interpreter to "lock" the itself from allowing more than one thread to access a global resource concurrently (races). GIL is what makes multi-threading possible in Python, gaining parallelism needed in a multi-processor environment (which pretty much exists in any modern computer today), but at the cost of wasting a lot of CPU's resources.
+
+
+
+
+
 
 
 
