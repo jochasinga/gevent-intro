@@ -202,8 +202,19 @@ This may seem lengthy, and if you feel so just go ahead and skip this section. H
 ###Thread###
 To understand threading in Python and its nuances, it is better to dig down into what lies beneath. We talked about a few of them before, but they were the effects, not the causes.
 
+Threads in Python are "real" OS threads, meaning Python maps its threading to the system's native threading process (POSIX Threads/Windows Threads) and thus handled by the system. Threads in Python are very expensive as they call the system very frequently. This is because they are deterministic--no way of scheduling at all. Threads are outside of Python's control and are left in the hand of the host operating system. The only way around this for Python designers were to come up with a central scheme to regulate or "choreograph" each thread's privilege to access a shared memory. This constant call to the scheme is the reason for its costly operation.
+
 ####GIL####
-No, GIL isn't HAL's girlfriend. It actually stands for [Global Interpreter Lock](https://docs.python.org/3.4/glossary.html#term-global-interpreter-lock "GIL"), a mechanism used in [CPython](https://docs.python.org/3.4/glossary.html#term-cpython "CPython") interpreter to "lock" the itself from allowing more than one thread to access a global resource concurrently (races). GIL is what makes multi-threading possible in Python, gaining parallelism needed in a multi-processor environment (which pretty much exists in any modern computer today), but at the cost of wasting a lot of CPU's resources.
+No, GIL isn't HAL's girlfriend. It actually stands for [Global Interpreter Lock](https://docs.python.org/3.4/glossary.html#term-global-interpreter-lock "GIL"), the central scheme used in [CPython](https://docs.python.org/3.4/glossary.html#term-cpython "CPython") interpreter to synchronize all threads and allowing no more than one thread to access a global resource at any given time. Sounds familiar? Well, yes, under the hood threads work similarly to greenlets (thus I was lying to you when I talked about parallelism), minus the predictability. At which point a thread get to access GIL to request a "queue ticket" is unknown. GIL makes multi-threading possible in Python, gaining (a sort of) parallelism needed in a multi-processor environment, but at the cost of wasting a lot of CPU's resources. GIL's main task is to detain other threads while a privileged one is accessing a shared memory and even regulate when to step aside, for instance in I/O operations such as reading files or sockets, and when to get back to business of locking threads.
+
+Python threads often cost one or both of the following:
++ The number of system calls used
++ The higher turn-around time of application
+
+###Subprocesses###
+Python has a module named [multiprocessing](https://docs.python.org/3.4/library/multiprocessing.html#module-multiprocessing "multiprocessing"), which is the next best thing. The module uses subprocesses instead of threads thus side-stepping the GIL entirely and avoiding unnecessary costly operations. *multiprocessing* is considered a pseudothread and offer similar APIs to threads.
+
+
 
 
 
